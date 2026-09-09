@@ -2,17 +2,26 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const STATE = "learn-mode";
 
-export function isExplicitWriteInvitation(prompt: string): boolean {
-  return /\b(?:please\s+(?:edit|modify|implement|write|change|fix)\s+(?:it|this|(?:the|this|my)\s+(?:code|files?|project|implementation|solution|changes?|bug|issue))|you\s+(?:can|may|should)\s+(?:edit|modify|implement|write|fix)|(?:make|apply)\s+the\s+changes|do\s+it\s+for\s+me)\b/i.test(prompt);
-}
-
 export function isMutatingShellCommand(command: string): boolean {
   return /\b(?:rm|mv|cp|mkdir|touch|tee|truncate)\b|\bsed\s+-i\b|\bperl\s+-pi\b|(?:^|\s)>>?\s*[^&\s]|\b(?:git|but)\s+(?:add|commit|push|checkout|merge|rebase|reset|clean|discard|amend|squash|move)\b/im.test(command);
 }
 
 export default function (pi: ExtensionAPI) {
   let enabled = false;
-  let allowWritesThisTurn = false;
+  let hiddenWriteTools: string[] = [];
+
+  const hideWriteTools = () => {
+    const active = pi.getActiveTools();
+    const newlyHidden = active.filter((name) => name === "edit" || name === "write");
+    hiddenWriteTools = [...new Set([...hiddenWriteTools, ...newlyHidden])];
+    if (newlyHidden.length) pi.setActiveTools(active.filter((name) => !newlyHidden.includes(name)));
+  };
+
+  const restoreWriteTools = () => {
+    if (!hiddenWriteTools.length) return;
+    pi.setActiveTools([...new Set([...pi.getActiveTools(), ...hiddenWriteTools])]);
+    hiddenWriteTools = [];
+  };
 
   const showStatus = (ctx: { ui: { setStatus: (id: string, text: string | undefined) => void } }) =>
     ctx.ui.setStatus(STATE, enabled ? "LEARN" : undefined);
@@ -24,11 +33,14 @@ export default function (pi: ExtensionAPI) {
         enabled = (entry.data as { enabled?: boolean })?.enabled === true;
       }
     }
+    if (enabled) hideWriteTools();
     showStatus(ctx);
   });
 
+  pi.on("session_shutdown", restoreWriteTools);
+
   pi.registerCommand("learn", {
-    description: "Turn learning mode on or off",
+    description: "Turn strict tutoring mode on or off",
     handler: async (args, ctx) => {
       const value = args.trim().toLowerCase();
       if (!value) {
@@ -41,7 +53,7 @@ export default function (pi: ExtensionAPI) {
       }
 
       enabled = value === "on";
-      allowWritesThisTurn = false;
+      enabled ? hideWriteTools() : restoreWriteTools();
       pi.appendEntry(STATE, { enabled });
       showStatus(ctx);
       ctx.ui.notify(`Learning mode ${value}.`, "info");
@@ -49,23 +61,16 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.on("before_agent_start", (event) => {
-    allowWritesThisTurn = enabled && isExplicitWriteInvitation(event.prompt);
     if (!enabled) return;
-
     return {
-      systemPrompt: `${event.systemPrompt}\n\nLearning mode is ON. Act as a tutor: explain concepts, ask one useful next question or exercise, and review the user's attempt. Do not provide a complete solution or modify files unless this current prompt explicitly asks you to do the implementation. ${allowWritesThisTurn ? "The current prompt explicitly permits implementation." : "The current prompt does not permit implementation."}`,
+      systemPrompt: `${event.systemPrompt}\n\nLearning mode is ON. Tutor only: explain concepts, ask one useful next question or exercise, and review the user's attempt. Do not provide a complete solution, attempt file-writing tools, or run mutating shell commands. If implementation is requested, tell the user to run /learn off first.`,
     };
   });
 
   pi.on("tool_call", (event) => {
-    if (!enabled || allowWritesThisTurn) return;
+    if (!enabled) return;
     const blocked = event.toolName === "edit" || event.toolName === "write" ||
       (event.toolName === "bash" && isMutatingShellCommand(event.input.command as string));
-    if (blocked) {
-      return {
-        block: true,
-        reason: "Learning mode is on. Ask the user to explicitly invite implementation before modifying files.",
-      };
-    }
+    if (blocked) return { block: true, reason: "Learning mode is on. Run /learn off before implementation." };
   });
 }

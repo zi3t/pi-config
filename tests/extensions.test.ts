@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { classifyShellCommand } from "../extensions/workspace-guard.ts";
-import { isExplicitWriteInvitation, isMutatingShellCommand } from "../extensions/learn.ts";
+import { isMutatingShellCommand } from "../extensions/learn.ts";
 
 test("workspace guard expands scripts and finds meaningful risk", () => {
   assert.equal(classifyShellCommand("npm run check", { check: "tsc --noEmit" }).writer, false);
@@ -14,11 +14,7 @@ test("workspace guard expands scripts and finds meaningful risk", () => {
   );
 });
 
-test("learning mode recognizes explicit permission and shell writes", () => {
-  assert.equal(isExplicitWriteInvitation("How should I fix this?"), false);
-  assert.equal(isExplicitWriteInvitation("Please change how you explain it"), false);
-  assert.equal(isExplicitWriteInvitation("Please implement the change"), true);
-  assert.equal(isExplicitWriteInvitation("Please fix this"), true);
+test("learning mode distinguishes checks from shell writes", () => {
   assert.equal(isMutatingShellCommand("npm test"), false);
   assert.equal(isMutatingShellCommand("cat result > answer.cpp"), true);
 });
