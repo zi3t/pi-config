@@ -1,0 +1,15 @@
+# Public config only: ignore credentials, history, memory, caches, and generated files.
+*
+!.gitignore
+!README.md
+!settings.json
+!models.json
+!extensions/
+!extensions/**
+!prompts/
+!prompts/**
+!skills/
+!skills/**
+skills/gitbutler/
+!themes/
+!themes/**

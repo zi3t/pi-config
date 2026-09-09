@@ -1,0 +1,40 @@
+{
+  "lastChangelogVersion": "0.85.1",
+  "theme": "dark",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-sol",
+  "defaultThinkingLevel": "high",
+  "packages": [
+    {
+      "source": "npm:pi-mcp-adapter",
+      "skills": []
+    },
+    "npm:pi-web-access",
+    {
+      "source": "npm:pi-subagents",
+      "skills": [
+        "skills/pi-subagents/SKILL.md"
+      ]
+    },
+    "npm:pi-vision-handoff",
+    {
+      "source": "npm:@plannotator/pi-extension",
+      "skills": []
+    },
+    "npm:@narumitw/pi-goal",
+    "npm:@dietrichgebert/ponytail",
+    "npm:pi-memory",
+    "npm:@ff-labs/pi-fff",
+    "npm:pi-side-chat"
+  ],
+  "enabledModels": [
+    "openai-codex/gpt-5.3-codex-spark",
+    "openai-codex/gpt-5.4",
+    "openai-codex/gpt-5.4-mini",
+    "openai-codex/gpt-5.5",
+    "openai-codex/gpt-5.6-luna",
+    "openai-codex/gpt-5.6-sol",
+    "openai-codex/gpt-5.6-terra",
+    "openai-codex/gpt-6-astra"
+  ]
+}
