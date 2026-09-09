@@ -14,7 +14,7 @@ Pi installs the packages listed in `settings.json` on startup. Authenticate prov
 
 ## Local extensions
 
-- `workspace-guard.ts` confirms commands that may deploy remotely, write outside the current repository, or write in a dirty workspace.
+- `workspace-guard.ts` confirms commands that may deploy remotely, write outside the current repository, or write in a dirty workspace. OMS repositories are excluded.
 - `/learn on|off` toggles strict tutoring mode; new sessions default to on only in the `hustler` repository.
 
 Edit files under `extensions/`, then run `/reload`.
