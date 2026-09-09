@@ -13,3 +13,5 @@
 skills/gitbutler/
 !themes/
 !themes/**
+!tests/
+!tests/**
