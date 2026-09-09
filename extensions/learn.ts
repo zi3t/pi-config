@@ -1,6 +1,11 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { basename } from "node:path";
 
 const STATE = "learn-mode";
+
+export function defaultsToLearningMode(root: string): boolean {
+  return basename(root) === "hustler";
+}
 
 export function isMutatingShellCommand(command: string): boolean {
   return /\b(?:rm|mv|cp|mkdir|touch|tee|truncate)\b|\bsed\s+-i\b|\bperl\s+-pi\b|(?:^|\s)>>?\s*[^&\s]|\b(?:git|but)\s+(?:add|commit|push|checkout|merge|rebase|reset|clean|discard|amend|squash|move)\b/im.test(command);
@@ -26,13 +31,18 @@ export default function (pi: ExtensionAPI) {
   const showStatus = (ctx: { ui: { setStatus: (id: string, text: string | undefined) => void } }) =>
     ctx.ui.setStatus(STATE, enabled ? "LEARN" : undefined);
 
-  pi.on("session_start", (_event, ctx) => {
-    enabled = false;
+  pi.on("session_start", async (_event, ctx) => {
+    let saved: boolean | undefined;
     for (const entry of ctx.sessionManager.getBranch()) {
       if (entry.type === "custom" && entry.customType === STATE) {
-        enabled = (entry.data as { enabled?: boolean })?.enabled === true;
+        saved = (entry.data as { enabled?: boolean })?.enabled;
       }
     }
+
+    const rootResult = saved === undefined
+      ? await pi.exec("git", ["-C", ctx.cwd, "rev-parse", "--show-toplevel"])
+      : undefined;
+    enabled = saved ?? defaultsToLearningMode(rootResult?.code === 0 ? rootResult.stdout.trim() : ctx.cwd);
     if (enabled) hideWriteTools();
     showStatus(ctx);
   });

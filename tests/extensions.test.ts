@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { classifyShellCommand } from "../extensions/workspace-guard.ts";
-import { isMutatingShellCommand } from "../extensions/learn.ts";
+import { defaultsToLearningMode, isMutatingShellCommand } from "../extensions/learn.ts";
 
 test("workspace guard expands scripts and finds meaningful risk", () => {
   assert.equal(classifyShellCommand("npm run check", { check: "tsc --noEmit" }).writer, false);
@@ -14,7 +14,9 @@ test("workspace guard expands scripts and finds meaningful risk", () => {
   );
 });
 
-test("learning mode distinguishes checks from shell writes", () => {
+test("learning mode defaults only in hustler and distinguishes shell writes", () => {
+  assert.equal(defaultsToLearningMode("/Users/example/hustler"), true);
+  assert.equal(defaultsToLearningMode("/Users/example/other"), false);
   assert.equal(isMutatingShellCommand("npm test"), false);
   assert.equal(isMutatingShellCommand("cat result > answer.cpp"), true);
 });
