@@ -7,7 +7,9 @@
   "packages": [
     {
       "source": "npm:pi-mcp-adapter",
-      "skills": []
+      "skills": [
+        "skills/mcp-scripting/SKILL.md"
+      ]
     },
     "npm:pi-web-access",
     {
@@ -16,16 +18,9 @@
         "skills/pi-subagents/SKILL.md"
       ]
     },
-    "npm:pi-vision-handoff",
-    {
-      "source": "npm:@plannotator/pi-extension",
-      "skills": []
-    },
-    "npm:@narumitw/pi-goal",
-    "npm:@dietrichgebert/ponytail",
     "npm:pi-memory",
     "npm:@ff-labs/pi-fff",
-    "npm:pi-side-chat"
+    "npm:@narumitw/pi-worktree@0.51.7"
   ],
   "enabledModels": [
     "openai-codex/gpt-5.3-codex-spark",
@@ -36,5 +31,18 @@
     "openai-codex/gpt-5.6-sol",
     "openai-codex/gpt-5.6-terra",
     "openai-codex/gpt-6-astra"
-  ]
+  ],
+  "outputPad": 0,
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "steeringMode": "all",
+  "followUpMode": "all",
+  "httpIdleTimeoutMs": 120000,
+  "hideThinkingBlock": false,
+  "markdown": {
+    "mermaid": "streaming"
+  },
+  "enableInstallTelemetry": false,
+  "tuiMode": "regular"
 }
